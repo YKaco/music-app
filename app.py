@@ -14,6 +14,17 @@ def sanitize_filename(name):
     return name.strip()[:200]
 
 
+# --------------------------
+# トップページ
+# --------------------------
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+# --------------------------
+# プレビュー（タイトル・長さ）
+# --------------------------
 @app.route("/preview", methods=["POST"])
 def preview():
     try:
@@ -33,6 +44,9 @@ def preview():
         return jsonify({"error": str(e)}), 500
 
 
+# --------------------------
+# ダウンロード
+# --------------------------
 @app.route("/download", methods=["POST"])
 def download():
     try:
@@ -76,16 +90,17 @@ def download():
         return jsonify({"error": str(e)}), 500
 
 
+# --------------------------
+# ファイルダウンロード
+# --------------------------
 @app.route("/file/<path:filename>")
 def file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
+# --------------------------
+# 起動（Render対応）
+# --------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
