@@ -4,73 +4,416 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Music Tool</title>
-
 <style>
-body {
-  font-family: sans-serif;
-  background: #111;
-  color: #fff;
-  text-align: center;
-  padding: 40px;
-}
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
 
-input, button {
-  padding: 10px;
-  margin: 8px;
-  width: 80%;
-  max-width: 400px;
-}
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #252525;
+    --accent: #c8f135;
+    --text: #e8e8e8;
+    --muted: #555;
+    --muted2: #888;
+    --danger: #ff5555;
+  }
 
-button {
-  background: #c8f135;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 56px 20px 80px;
+  }
+
+  .wrap { width: 100%; max-width: 520px; }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+  .sub {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  /* URL row */
+  .url-row { display: flex; gap: 8px; margin-bottom: 16px; }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    padding: 11px 14px;
+    border-radius: 7px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    padding: 10px 0;
+    border-radius: 7px;
+    outline: none;
+    text-align: center;
+    width: 80px;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button { display: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 0.82rem;
+    padding: 11px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button:hover  { background: #d6f94e; }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* Error */
+  .err {
+    font-size: 0.78rem;
+    color: var(--danger);
+    background: rgba(255,85,85,0.07);
+    border: 1px solid rgba(255,85,85,0.2);
+    border-radius: 7px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .err.on { display: block; }
+
+  /* Progress */
+  .prog { display: none; margin-bottom: 14px; }
+  .prog.on { display: block; }
+  .prog-label { font-size: 0.72rem; color: var(--muted2); margin-bottom: 6px; }
+  .prog-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .prog-fill  {
+    height: 100%; background: var(--accent); border-radius: 2px;
+    animation: slide 1.3s infinite ease-in-out;
+  }
+  @keyframes slide {
+    0%   { width:0%;  margin-left:0%;   }
+    50%  { width:55%; margin-left:22%;  }
+    100% { width:0%;  margin-left:100%; }
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+  }
+  .card.on { display: block; animation: rise 0.25s ease; }
+  @keyframes rise {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* Info section */
+  .info-sec {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .video-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 14px;
+    word-break: break-word;
+  }
+
+  /* Timeline bar */
+  .timeline-wrap { position: relative; }
+
+  .timeline-track {
+    position: relative;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-bottom: 6px;
+    cursor: pointer;
+  }
+
+  .timeline-range {
+    position: absolute;
+    top: 0; height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: left 0.1s, width 0.1s;
+    pointer-events: none;
+  }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--muted2);
+  }
+
+  /* Trim section */
+  .trim-sec { padding: 16px 20px; }
+
+  .trim-label-row {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .trim-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .trim-group { display: flex; flex-direction: column; gap: 4px; }
+
+  .trim-sublabel {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .sep { color: var(--muted); font-size: 1.1rem; margin-top: 14px; }
+
+  .hint { font-size: 0.68rem; color: var(--muted); margin-top: 10px; }
+
+  /* Download link */
+  .dl-link {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 11px 16px;
+    background: rgba(200,241,53,0.06);
+    border: 1px solid rgba(200,241,53,0.25);
+    border-radius: 8px;
+    color: var(--accent);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .dl-link.on    { display: flex; }
+  .dl-link:hover { background: rgba(200,241,53,0.12); }
 </style>
 </head>
-
 <body>
+<div class="wrap">
 
-<h1>Music Tool</h1>
+  <h1>MUSIC TOOL</h1>
+  <p class="sub">YouTube → MP3 Converter</p>
 
-<input id="url" placeholder="YouTube URL">
+  <div class="url-row">
+    <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=...">
+    <button id="btn-search" onclick="doPreview()">検索</button>
+  </div>
 
-<br>
+  <div class="err" id="err"></div>
 
-<input id="start" placeholder="start秒（任意）">
-<input id="end" placeholder="end秒（任意）">
+  <div class="prog" id="prog">
+    <div class="prog-label" id="prog-label">取得中...</div>
+    <div class="prog-track"><div class="prog-fill"></div></div>
+  </div>
 
-<br>
+  <div class="card" id="card">
 
-<button onclick="download()">Download MP3</button>
+    <!-- タイトル ＋ タイムライン -->
+    <div class="info-sec">
+      <div class="video-title" id="v-title"></div>
 
-<p id="status"></p>
+      <div class="timeline-wrap">
+        <div class="timeline-track" id="timeline" onclick="seekTimeline(event)">
+          <div class="timeline-range" id="tl-range"></div>
+        </div>
+        <div class="timeline-labels">
+          <span id="tl-start-label">0:00</span>
+          <span id="tl-dur-label">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 時間指定 ＋ 実行 -->
+    <div class="trim-sec">
+      <div class="trim-label-row">時間指定</div>
+      <div class="trim-inputs">
+        <div class="trim-group">
+          <div class="trim-sublabel">開始（秒）</div>
+          <input type="number" id="start" value="0" min="0" oninput="updateTimeline()">
+        </div>
+        <div class="sep">—</div>
+        <div class="trim-group">
+          <div class="trim-sublabel">終了（秒）</div>
+          <input type="number" id="end" placeholder="末尾" min="0" oninput="updateTimeline()">
+        </div>
+        <button id="btn-run" onclick="doDownload()" style="margin-top:18px">実行</button>
+      </div>
+      <p class="hint">※ 終了を空欄にすると末尾まで変換</p>
+
+      <a class="dl-link" id="dl-link" href="#" download>⬇ MP3 をダウンロード</a>
+    </div>
+
+  </div>
+</div>
 
 <script>
-async function download() {
-    const url = document.getElementById("url").value;
-    const start = document.getElementById("start").value;
-    const end = document.getElementById("end").value;
+let totalDuration = 0;
 
-    document.getElementById("status").innerText = "処理中...";
+function fmt(s) {
+  s = Math.round(s);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
 
-    const res = await fetch("/download", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({url, start, end})
+function showErr(msg) {
+  const e = document.getElementById('err');
+  e.textContent = msg; e.classList.add('on');
+}
+function clearErr() { document.getElementById('err').classList.remove('on'); }
+
+function setProgress(on, label) {
+  document.getElementById('prog').classList.toggle('on', on);
+  if (label) document.getElementById('prog-label').textContent = label;
+}
+
+// タイムラインバーの緑範囲を更新
+function updateTimeline() {
+  if (!totalDuration) return;
+  const s = Number(document.getElementById('start').value || 0);
+  const eRaw = document.getElementById('end').value;
+  const e = eRaw ? Number(eRaw) : totalDuration;
+
+  const left  = (s / totalDuration) * 100;
+  const width = (Math.max(0, e - s) / totalDuration) * 100;
+
+  const range = document.getElementById('tl-range');
+  range.style.left  = `${Math.min(left, 100)}%`;
+  range.style.width = `${Math.min(width, 100 - left)}%`;
+
+  document.getElementById('tl-start-label').textContent = fmt(s);
+}
+
+// タイムラインクリックで開始秒をセット
+function seekTimeline(e) {
+  if (!totalDuration) return;
+  const track = document.getElementById('timeline');
+  const ratio = Math.max(0, Math.min(1, e.offsetX / track.offsetWidth));
+  const sec   = Math.round(ratio * totalDuration);
+  document.getElementById('start').value = sec;
+  updateTimeline();
+}
+
+async function doPreview() {
+  clearErr();
+  const url = document.getElementById('url').value.trim();
+  if (!url) { showErr('URLを入力してください'); return; }
+
+  const btn = document.getElementById('btn-search');
+  btn.disabled = true; btn.textContent = '取得中...';
+  setProgress(true, '動画情報を取得中...');
+  document.getElementById('card').classList.remove('on');
+  document.getElementById('dl-link').classList.remove('on');
+
+  try {
+    const res  = await fetch('/preview', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url})
     });
-
     const data = await res.json();
+    if (data.error) { showErr(data.error); return; }
 
-    if (data.filename) {
-        document.getElementById("status").innerHTML =
-            `<a href="/file/${data.filename}">ダウンロード</a>`;
-    } else {
-        document.getElementById("status").innerText = data.error;
-    }
+    totalDuration = data.duration;
+
+    document.getElementById('v-title').textContent      = data.title;
+    document.getElementById('tl-dur-label').textContent = fmt(data.duration);
+    document.getElementById('end').placeholder          = `${data.duration}`;
+    document.getElementById('start').value = 0;
+    document.getElementById('end').value   = '';
+
+    updateTimeline();
+    document.getElementById('card').classList.add('on');
+
+  } catch(e) { showErr('エラー: ' + e.message); }
+  finally {
+    btn.disabled = false; btn.textContent = '検索';
+    setProgress(false);
+  }
+}
+
+async function doDownload() {
+  clearErr();
+  const url   = document.getElementById('url').value.trim();
+  const start = Number(document.getElementById('start').value || 0);
+  const endRaw = document.getElementById('end').value;
+  const end   = endRaw ? Number(endRaw) : null;
+
+  if (end !== null && end <= start) {
+    showErr('終了秒は開始秒より大きくしてください'); return;
+  }
+
+  const btn = document.getElementById('btn-run');
+  btn.disabled = true; btn.textContent = '処理中...';
+  setProgress(true, 'ダウンロード・変換中...');
+  document.getElementById('dl-link').classList.remove('on');
+
+  try {
+    const res  = await fetch('/download', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url, start, end})
+    });
+    const data = await res.json();
+    if (data.error) { showErr(data.error); return; }
+
+    const link = document.getElementById('dl-link');
+    link.href = '/file/' + encodeURIComponent(data.filename);
+    link.setAttribute('download', data.filename);
+    link.classList.add('on');
+
+  } catch(e) { showErr('エラー: ' + e.message); }
+  finally {
+    btn.disabled = false; btn.textContent = '実行';
+    setProgress(false);
+  }
 }
 </script>
-
 </body>
 </html>
