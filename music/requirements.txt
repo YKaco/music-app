@@ -1,3 +1,4 @@
 flask
 yt-dlp
 gunicorn
+python-3.11.9
