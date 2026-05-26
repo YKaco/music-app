@@ -30,7 +30,7 @@ def login_required(f):
 # --------------------------
 # ログイン
 # --------------------------
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login/", methods=["GET", "POST"])
 def login():
     error = None
     if request.method == "POST":
