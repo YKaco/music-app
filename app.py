@@ -15,15 +15,7 @@ def sanitize_filename(name):
 
 
 # --------------------------
-# トップページ
-# --------------------------
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-# --------------------------
-# プレビュー（タイトル・長さ）
+# ① URL情報取得（タイトル・秒数）
 # --------------------------
 @app.route("/preview", methods=["POST"])
 def preview():
@@ -32,11 +24,11 @@ def preview():
         if not url:
             return jsonify({"error": "URLが空です"}), 400
 
-        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True}) as ydl:
+        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True}) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return jsonify({
-            "title": info.get("title", "不明"),
+            "title":    info.get("title", "不明"),
             "duration": info.get("duration", 0),
         })
 
@@ -45,22 +37,22 @@ def preview():
 
 
 # --------------------------
-# ダウンロード
+# ② ダウンロード（時間指定OK）
 # --------------------------
 @app.route("/download", methods=["POST"])
 def download():
     try:
-        data = request.json
-        url = data.get("url", "").strip()
+        data  = request.json
+        url   = data.get("url", "").strip()
         start = int(data.get("start", 0))
-        end = data.get("end")
-        end = int(end) if end else None
+        end   = data.get("end")
+        end   = int(end) if end else None
 
         if not url:
             return jsonify({"error": "URLが空です"}), 400
 
         with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True}) as ydl:
-            info = ydl.extract_info(url, download=False)
+            info      = ydl.extract_info(url, download=False)
             raw_title = info.get("title", "output")
 
         safe_title = sanitize_filename(raw_title)
@@ -69,6 +61,7 @@ def download():
             "format": "bestaudio/best",
             "outtmpl": f"{DOWNLOAD_FOLDER}/{safe_title}.%(ext)s",
             "quiet": True,
+            "no_warnings": True,
             "postprocessors": [{
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
@@ -91,16 +84,17 @@ def download():
 
 
 # --------------------------
-# ファイルダウンロード
+# ファイル取得
 # --------------------------
 @app.route("/file/<path:filename>")
 def file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 
-# --------------------------
-# 起動（Render対応）
-# --------------------------
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
